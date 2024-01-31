@@ -84,12 +84,22 @@ def mark_attendance():
 
                 if existing_record is None or "time_out" in existing_record:
                     attendance_list = existing_record.get("attendance", []) if existing_record else []
-                    attendance_list.append({"time_in": current_time})
-                    db.collection('attendance_records').document(employee_id).set({"employee_id": employee_id, "attendance": attendance_list}, merge=True)
+                    attendance_list.append({"time_in": current_time, "time_out": None})
+                    db.collection('attendance_records').document(employee_id).set({"employee_id": employee_id, "attendance": attendance_list, "in_office": True}, merge=True)
                     print(f"Employee {employee_id} attendance marked with sign-in time at {current_time}")
                 else:
-                    db.collection('attendance_records').document(employee_id).set({"employee_id": employee_id, "attendance": [{"time_in": current_time}]})
-                    print(f"Employee {employee_id} attendance marked with sign-in time at {current_time}")
+                    # Employee has already signed in, update the latest entry
+                    latest_entry = attendance_list[-1]
+                    if latest_entry["time_out"] is not None:
+                        attendance_list.append({"time_in": current_time, "time_out": None})
+                        db.collection('attendance_records').document(employee_id).update({"attendance": attendance_list, "in_office": True})
+                        print(f"Employee {employee_id} attendance marked with sign-in time at {current_time}")
+                    else:
+                        print(f"Employee {employee_id} is already signed in.")
+
+                    # Determine in-office status based on the latest entry
+                    in_office = latest_entry["time_out"] is None
+                    print(f"Employee {employee_id} is {'in' if in_office else 'not in'} the office.")
             else:
                 print("Face not recognized. Please try again.")
 
