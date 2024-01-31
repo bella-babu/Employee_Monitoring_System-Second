@@ -6,6 +6,14 @@ import datetime
 import numpy as np
 import pandas as pd
 
+import firebase_admin
+from firebase_admin import credentials,firestore
+
+cred = credentials.Certificate("employee-monitoring-syst-9c58e-firebase-adminsdk-yvvjq-61fde9871d.json")
+firebase_admin.initialize_app(cred)
+db = firestore.client()
+
+
 app = Flask(__name__)
 
 employee_faces_folder = "employee_faces"
@@ -72,24 +80,17 @@ def mark_attendance():
             employee_id = recognize_employee(face_encodings[0])
 
             if employee_id:
-                existing_record = next((record for record in attendance_records if record["employee_id"] == employee_id), None)
+                existing_record = db.collection('attendance_records').document(employee_id).get().to_dict()
 
-                # if existing_record:
-                #     existing_record["time_out"] = current_time
-                #     print(f"Employee {employee_id} attendance updated with sign-out time at {current_time}")
-                if not existing_record:
-                    attendance_records.append({"employee_id": employee_id, "time_in": current_time})
-                    print(f"Employee {employee_id} attendance marked with sign-in time at {current_time}")
+                if existing_record and "time_out" not in existing_record:
+                    db.collection('attendance_records').document(employee_id).update({"time_out": current_time})
+                    print(f"Employee {employee_id} attendance updated with sign-out time at {current_time}")
                 else:
-                    if "time_out" in existing_record:
-                        attendance_records.append({"employee_id": employee_id, "time_in": current_time})
+                    db.collection('attendance_records').document(employee_id).set({"employee_id": employee_id, "time_in": current_time})
                     print(f"Employee {employee_id} attendance marked with sign-in time at {current_time}")
-                    
-
-                        
-
             else:
                 print("Face not recognized. Please try again.")
+
 
     video_capture.release()
     cv2.destroyAllWindows()
