@@ -74,7 +74,7 @@ def mark_attendance():
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-        # Check if any face is recognized
+        # Check if any face is recognized           
         if face_encodings:
             current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             employee_id = recognize_employee(face_encodings[0])
@@ -82,15 +82,16 @@ def mark_attendance():
             if employee_id:
                 existing_record = db.collection('attendance_records').document(employee_id).get().to_dict()
 
-                if existing_record and "time_out" not in existing_record:
-                    db.collection('attendance_records').document(employee_id).update({"time_out": current_time})
-                    print(f"Employee {employee_id} attendance updated with sign-out time at {current_time}")
+                if existing_record is None or "time_out" in existing_record:
+                    attendance_list = existing_record.get("attendance", []) if existing_record else []
+                    attendance_list.append({"time_in": current_time})
+                    db.collection('attendance_records').document(employee_id).set({"employee_id": employee_id, "attendance": attendance_list}, merge=True)
+                    print(f"Employee {employee_id} attendance marked with sign-in time at {current_time}")
                 else:
-                    db.collection('attendance_records').document(employee_id).set({"employee_id": employee_id, "time_in": current_time})
+                    db.collection('attendance_records').document(employee_id).set({"employee_id": employee_id, "attendance": [{"time_in": current_time}]})
                     print(f"Employee {employee_id} attendance marked with sign-in time at {current_time}")
             else:
                 print("Face not recognized. Please try again.")
-
 
     video_capture.release()
     cv2.destroyAllWindows()
