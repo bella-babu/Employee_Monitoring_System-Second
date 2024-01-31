@@ -5,6 +5,12 @@ import os
 import datetime
 import numpy as np
 import pandas as pd
+import firebase_admin
+from firebase_admin import credentials,firestore
+
+cred = credentials.Certificate("employee-monitoring-syst-9c58e-firebase-adminsdk-yvvjq-61fde9871d.json")
+firebase_admin.initialize_app(cred)
+db = firestore.client()
 
 app = Flask(__name__)
 
@@ -72,12 +78,21 @@ def mark_attendance():
             employee_id = recognize_employee(face_encodings[0])
 
             if employee_id:
-                existing_record = next((record for record in attendance_records if record["employee_id"] == employee_id), None)
+                existing_record = db.collection('attendance_records').document(employee_id).get().to_dict()
 
-                if existing_record and "time_out" not in existing_record:
-                    existing_record["time_out"] = current_time
-                    print(f"Employee {employee_id} attendance updated with sign-out time at {current_time}")
-
+                if existing_record and "attendance" in existing_record:
+                    attendance_list = existing_record["attendance"]
+                    if attendance_list and attendance_list[-1]["time_out"] is None:
+                        attendance_list[-1]["time_out"] = current_time
+                        db.collection('attendance_records').document(employee_id).update({
+                            "attendance": attendance_list,
+                            "in_office": False
+                        })
+                        print(f"Employee {employee_id} attendance marked with sign-out time at {current_time}")
+                    else:
+                        print("No one is in.")
+                else:
+                    print("Employee not found in records. Please check registration.")
             else:
                 print("Face not recognized. Please try again.")
 
