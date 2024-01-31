@@ -74,9 +74,6 @@ def mark_attendance():
             if employee_id:
                 existing_record = next((record for record in attendance_records if record["employee_id"] == employee_id), None)
 
-                # if existing_record:
-                #     existing_record["time_out"] = current_time
-                #     print(f"Employee {employee_id} attendance updated with sign-out time at {current_time}")
                 if not existing_record:
                     attendance_records.append({"employee_id": employee_id, "time_in": current_time})
                     print(f"Employee {employee_id} attendance marked with sign-in time at {current_time}")
