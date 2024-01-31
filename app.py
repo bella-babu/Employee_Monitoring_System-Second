@@ -82,8 +82,8 @@ def mark_attendance():
             if employee_id:
                 existing_record = db.collection('attendance_records').document(employee_id).get().to_dict()
 
-                if existing_record and "attendance" in existing_record:
-                    attendance_list = existing_record["attendance"]
+                if existing_record:
+                    attendance_list = existing_record.get("attendance", [])
                     if not attendance_list:
                         attendance_list = []  # Initialize as an empty list if not present
 
@@ -97,9 +97,18 @@ def mark_attendance():
                         })
                         print(f"Employee {employee_id} attendance marked with sign-in time at {current_time}")
                 else:
-                    print("Employee not found in records. Please check registration.")
+                    # Create a new document for the new employee
+                    db.collection('attendance_records').document(employee_id).set({
+                        "employee_id": employee_id,
+                        "attendance": [{"time_in": current_time, "time_out": None}],
+                        "in_office": True
+                    })
+                    print(f"New employee {employee_id} registered and marked in at {current_time}")
             else:
                 print("Face not recognized. Please try again.")
+
+    video_capture.release()
+    cv2.destroyAllWindows()
 
     video_capture.release()
     cv2.destroyAllWindows()
