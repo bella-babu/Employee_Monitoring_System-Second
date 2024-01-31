@@ -43,13 +43,27 @@ def register_employee_face(employee_id):
 
     # Save the first captured face encoding
     if face_encodings:
-        face_encoding = face_encodings[0]
-        np.save(os.path.join(employee_faces_folder, f"employee_{employee_id}"), face_encoding)
+            current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            employee_id = recognize_employee(face_encodings[0])
 
-    video_capture.release()
-    cv2.destroyAllWindows()
+            if employee_id:
+                existing_record = db.collection('attendance_records').document(employee_id).get().to_dict()
 
-    print(f"Employee {employee_id} face registered successfully.")
+                if existing_record and "attendance" in existing_record:
+                    attendance_list = existing_record.get("attendance", [])  # Initialize as an empty list if not present
+                    if attendance_list and attendance_list[-1]["time_out"] is None:
+                        attendance_list[-1]["time_out"] = current_time
+                        db.collection('attendance_records').document(employee_id).update({
+                            "attendance": attendance_list,
+                            "in_office": False
+                        })
+                        print(f"Employee {employee_id} attendance marked with sign-out time at {current_time}")
+                    else:
+                        print("No one is in.")
+                else:
+                    print("Employee not found in records. Please check registration.")
+            else:
+                print("Face not recognized. Please try again.")
 
 def mark_attendance():
     video_capture = cv2.VideoCapture(0)
