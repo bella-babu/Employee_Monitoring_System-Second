@@ -82,24 +82,22 @@ def mark_attendance():
             if employee_id:
                 existing_record = db.collection('attendance_records').document(employee_id).get().to_dict()
 
-                if existing_record is None or "time_out" in existing_record:
-                    attendance_list = existing_record.get("attendance", []) if existing_record else []
-                    attendance_list.append({"time_in": current_time, "time_out": None})
-                    db.collection('attendance_records').document(employee_id).set({"employee_id": employee_id, "attendance": attendance_list, "in_office": True}, merge=True)
-                    print(f"Employee {employee_id} attendance marked with sign-in time at {current_time}")
-                else:
-                    # Employee has already signed in, update the latest entry
-                    latest_entry = attendance_list[-1]
-                    if latest_entry["time_out"] is not None:
-                        attendance_list.append({"time_in": current_time, "time_out": None})
-                        db.collection('attendance_records').document(employee_id).update({"attendance": attendance_list, "in_office": True})
-                        print(f"Employee {employee_id} attendance marked with sign-in time at {current_time}")
-                    else:
-                        print(f"Employee {employee_id} is already signed in.")
+                if existing_record and "attendance" in existing_record:
+                    attendance_list = existing_record["attendance"]
+                    if not attendance_list:
+                        attendance_list = []  # Initialize as an empty list if not present
 
-                    # Determine in-office status based on the latest entry
-                    in_office = latest_entry["time_out"] is None
-                    print(f"Employee {employee_id} is {'in' if in_office else 'not in'} the office.")
+                    if attendance_list and attendance_list[-1]["time_out"] is None:
+                        print("Employee already marked in.")
+                    else:
+                        attendance_list.append({"time_in": current_time, "time_out": None})
+                        db.collection('attendance_records').document(employee_id).update({
+                            "attendance": attendance_list,
+                            "in_office": True
+                        })
+                        print(f"Employee {employee_id} attendance marked with sign-in time at {current_time}")
+                else:
+                    print("Employee not found in records. Please check registration.")
             else:
                 print("Face not recognized. Please try again.")
 
