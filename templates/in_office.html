@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>In Office Employees</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+    />
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+        background-color: #333; /* Dark background color */
+        color: #fff; /* Light text color */
+        margin: 20px;
+        text-align: center;
+      }
+
+      h1 {
+        color: #ddd; /* Light heading color */
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background-color: #444; /* Darker table background color */
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.1); /* Lighter box shadow */
+        color: #fff; /* Light table text color */
+      }
+
+      th,
+      td {
+        border: 1px solid #555; /* Darker border color */
+        padding: 15px;
+        text-align: left;
+      }
+
+      th {
+        background-color: #007bff;
+        color: #fff;
+      }
+
+      a,
+      .btn {
+        display: inline-block;
+        margin-top: 20px;
+        text-align: center;
+        color: #fff;
+        text-decoration: none;
+        padding: 15px 30px;
+        font-size: 16px;
+        background-color: #007bff;
+        border: none;
+        cursor: pointer;
+      }
+
+      a:hover,
+      .btn:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>In Office Employees</h1>
+
+    <h2>Total Employees In Office: {{ total_in_office }}</h2>
+
+    <table>
+      <tr>
+        <th>Employee ID</th>
+        <th>Sign-In Time</th>
+      </tr>
+      {% for employee in in_office_employees %}
+      <tr>
+        <td>{{ employee.employee_id }}</td>
+        <td>{{ employee.time_in }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+
+    <a href="{{ url_for('index') }}" class="btn">Back to Attendance Records</a>
+  </body>
+</html>

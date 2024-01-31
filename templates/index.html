@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Employee Attendance System</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+    />
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+        background-color: #333; /* Dark background color */
+        color: #fff; /* Light text color */
+        margin: 20px;
+        text-align: center;
+      }
+
+      h1 {
+        color: #ddd; /* Light heading color */
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background-color: #444; /* Darker table background color */
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.1); /* Lighter box shadow */
+        color: #fff; /* Light table text color */
+      }
+
+      th,
+      td {
+        border: 1px solid #555; /* Darker border color */
+        padding: 15px;
+        text-align: left;
+      }
+
+      th {
+        background-color: #007bff;
+        color: #fff;
+      }
+
+      a,
+      .btn {
+        display: inline-block;
+        margin-top: 20px;
+        text-align: center;
+        color: #fff;
+        text-decoration: none;
+        padding: 15px 30px;
+        font-size: 16px;
+        background-color: #007bff;
+        border: none;
+        cursor: pointer;
+      }
+
+      a:hover,
+      .btn:hover {
+        background-color: #0056b3;
+      }
+
+      /* Add this rule for dark theme */
+      .dark-theme {
+        background-color: #333;
+        color: #fff;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Employee Attendance System</h1>
+
+    <h2>Attendance Records</h2>
+    <table>
+      <tr>
+        <th>Employee ID</th>
+        <th>Sign-In Time</th>
+        <th>Sign-Out Time</th>
+      </tr>
+      {% for record in attendance_records %}
+      <tr>
+        <td>{{ record.employee_id }}</td>
+        <td>{{ record.time_in }}</td>
+        <td>{{ record.time_out }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+
+    <a href="{{ url_for('register') }}" class="btn">Register New Employee</a>
+    <button onclick="downloadCSV()" class="btn">
+      Download Attendance as CSV
+    </button>
+
+    <form action="{{ url_for('mark_attendance_route') }}" method="post">
+      <button type="submit" class="btn">Mark Attendance</button>
+    </form>
+    <a href="{{ url_for('in_office') }}" class="btn">In Office employees</a>
+    <script>
+      function downloadCSV() {
+        const table = document.querySelector("table");
+        const rows = Array.from(table.querySelectorAll("tr"));
+
+        const csvContent = rows
+          .map((row) => {
+            const cells = Array.from(row.querySelectorAll("td, th"));
+            return cells.map((cell) => cell.textContent).join(",");
+          })
+          .join("\n");
+
+        const blob = new Blob([csvContent], {
+          type: "text/csv",
+        });
+        const link = document.createElement("a");
+        link.href = window.URL.createObjectURL(blob);
+        link.download = "attendance_records.csv";
+        link.click();
+      }
+    </script>
+  </body>
+</html>
